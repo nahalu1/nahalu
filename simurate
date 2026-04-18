@@ -1,0 +1,59 @@
+import random
+import csv
+import datetime
+import os
+
+# ── 設定 ──────────────────────────────────
+NUM_RECORDS   = 100        # 生成するデータ件数
+INTERVAL_SEC  = 1          # センサーの計測間隔（秒）
+OUTPUT_FILE   = "sensor_data.csv"
+
+# ── センサーデータ生成関数 ─────────────────
+def generate_temperature():
+    """温度センサーをシミュレート（15〜35℃）"""
+    return round(random.uniform(15.0, 35.0), 1)
+
+def generate_illuminance():
+    """照度センサーをシミュレート（0〜1000 lux）"""
+    return round(random.uniform(0, 1000), 1)
+
+# ── CSV保存関数 ────────────────────────────
+def save_to_csv(data, filename):
+    file_exists = os.path.exists(filename)
+    with open(filename, mode="a", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=data.keys())
+        if not file_exists:
+            writer.writeheader()   # 初回だけヘッダーを書く
+        writer.writerow(data)
+
+# ── メイン処理 ────────────────────────────
+def main():
+    print("センサーシミュレーター起動...")
+    print(f"{NUM_RECORDS}件のデータを生成します\n")
+
+    base_time = datetime.datetime(2024, 1, 1, 9, 0, 0)
+
+    for i in range(NUM_RECORDS):
+        # 現在時刻を計算
+        current_time = base_time + datetime.timedelta(seconds=i * INTERVAL_SEC)
+
+        # センサーデータを生成
+        record = {
+            "timestamp":   current_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "temperature": generate_temperature(),
+            "illuminance": generate_illuminance(),
+        }
+
+        # CSVに保存
+        save_to_csv(record, OUTPUT_FILE)
+
+        # 10件ごとに進捗を表示
+        if (i + 1) % 10 == 0:
+            print(f"  {i + 1}/{NUM_RECORDS} 件保存完了"
+                  f"  | 温度: {record['temperature']}℃"
+                  f"  | 照度: {record['illuminance']} lux")
+
+    print(f"\n完了！ {OUTPUT_FILE} に保存しました")
+
+if __name__ == "__main__":
+    main()
